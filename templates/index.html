@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CricStatX</title>
+<style>
+body{
+    margin:0;
+    background:radial-gradient(circle at top,#001f3f,#000814);
+    font-family:Segoe UI;
+    color:white;
+}
+h1{text-align:center;color:#00ffd5;margin-top:20px}
+section{margin:30px}
+table{
+    width:95%;
+    margin:auto;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+th,td{
+    border:1px solid #00ffd5;
+    padding:10px;
+    text-align:center;
+}
+th{background:#00ffd5;color:#001f3f}
+</style>
+</head>
+
+<body>
+
+<h1>🏏 CricStatX</h1>
+
+<section>
+<h2>🏏 Batting Stats</h2>
+<table>
+<tr>
+<th>Player</th><th>Matches</th><th>Runs</th><th>Balls</th>
+<th>4s</th><th>6s</th><th>HS</th><th>Average</th><th>Strike Rate</th>
+</tr>
+{% for p in batting %}
+{% if p[3]|int > 0 %}
+<tr>
+<td>{{p[0]}}</td>
+<td>{{p[1]}}</td>
+<td>{{p[2]}}</td>
+<td>{{p[3]}}</td>
+<td>{{p[9]}}</td>
+<td>{{p[10]}}</td>
+<td>{{p[11]}}</td>
+<td>{{'%.2f'%(p[2]/p[6] if p[6]|int>0 else p[2])}}</td>
+<td>{{'%.2f'%((p[2]/p[3])*100 if p[3]|int>0 else 0)}}</td>
+</tr>
+{% endif %}
+{% endfor %}
+</table>
+</section>
+
+<section>
+<h2>🎯 Bowling Stats</h2>
+<table>
+<tr>
+<th>Player</th><th>Overs</th><th>Runs</th><th>Wickets</th><th>Average</th><th>Economy</th>
+</tr>
+{% for p in bowling %}
+{% if p[8]|int > 0 %}
+<tr>
+<td>{{p[0]}}</td>
+<td>{{'%.1f'%(p[8]/6)}}</td>
+<td>{{p[7]}}</td>
+<td>{{p[4]}}</td>
+<td>{{'%.2f'%(p[7]/p[4] if p[4]|int>0 else 0)}}</td>
+<td>{{'%.2f'%((p[7]/(p[8]/6)) if p[8]|int>0 else 0)}}</td>
+</tr>
+{% endif %}
+{% endfor %}
+</table>
+</section>
+
+</body>
+</html>

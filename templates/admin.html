@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Panel - CricStatX</title>
+<style>
+body{background:radial-gradient(circle at top,#000428,#004e92);font-family:Segoe UI;color:white;text-align:center}
+h1{color:#00ffd5}
+.card{background:#001f3f;width:400px;margin:auto;padding:20px;border-radius:10px;margin-top:30px;box-shadow:0 0 15px #00ffd5}
+input,select,button{padding:10px;width:90%;margin-top:10px}
+button{background:#00ffd5;border:none;font-weight:bold;cursor:pointer}
+small{color:#aaa}
+</style>
+</head>
+
+<body>
+
+<h1>⚙ CricStatX Admin Panel</h1>
+
+<div class="card">
+<h3>📤 Upload Match PDF</h3>
+<form method="post" enctype="multipart/form-data">
+<input type="file" name="file" required>
+<button name="action" value="upload">Upload Match</button>
+</form>
+</div>
+
+<div class="card">
+<h3>🧹 Reset Database</h3>
+<form method="post">
+<button name="action" value="reset">Reset All Stats</button>
+</form>
+</div>
+
+<div class="card">
+<h3>📊 Database Info</h3>
+<p>Total Players: {{count}}</p>
+<p>Total Matches Played: {{matches}}</p>
+</div>
+
+<div class="card">
+<h3>✏ Edit Player</h3>
+<form method="post">
+<input type="hidden" name="action" value="edit">
+
+<select name="old" required>
+{% for p in players_list %}
+<option value="{{p[0]}}">{{p[0]}}</option>
+{% endfor %}
+</select>
+
+<input name="name" placeholder="New Name">
+<input name="runs" placeholder="Runs">
+<input name="balls" placeholder="Balls">
+<input name="wickets" placeholder="Wickets">
+<input name="bowl_runs" placeholder="Bowling Runs">
+<input name="bowl_balls" placeholder="Bowling Balls">
+<input name="fours" placeholder="4s">
+<input name="sixes" placeholder="6s">
+<input name="hs" placeholder="HS">
+
+<button>Save Changes</button>
+</form>
+</div>
+
+<div class="card">
+<a href="/logout"><button>Logout</button></a>
+</div>
+
+</body>
+</html>

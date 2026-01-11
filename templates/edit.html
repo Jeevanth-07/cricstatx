@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Edit Player</title>
+<style>
+body{background:#000814;font-family:Segoe UI;color:white;text-align:center}
+input,button{padding:10px;margin:5px}
+</style>
+</head>
+<body>
+
+<h2>Edit {{p[0]}}</h2>
+
+<form method="post">
+<input name="runs" value="{{p[2]}}" placeholder="Runs"><br>
+<input name="balls" value="{{p[3]}}" placeholder="Balls"><br>
+<input name="wickets" value="{{p[4]}}" placeholder="Wickets"><br>
+<input name="bowl_runs" value="{{p[7]}}" placeholder="Bowling Runs"><br>
+<input name="bowl_balls" value="{{p[8]}}" placeholder="Bowling Balls"><br>
+<input name="fours" value="{{p[9]}}" placeholder="4s"><br>
+<input name="sixes" value="{{p[10]}}" placeholder="6s"><br>
+<input name="hs" value="{{p[11]}}" placeholder="HS"><br>
+<button>Save</button>
+</form>
+
+</body>
+</html>
