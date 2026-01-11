@@ -163,6 +163,17 @@ def admin():
         matches=matches
     )
 
+@app.route("/delete_player", methods=["POST"])
+def delete_player():
+    if not session.get("admin"):
+        return redirect("/login")
+
+    con=db()
+    cur=con.cursor()
+    cur.execute("DELETE FROM players WHERE name=?", (request.form["name"],))
+    con.commit()
+    con.close()
+    return redirect("/admin")
 
 @app.route("/logout")
 

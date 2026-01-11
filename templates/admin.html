@@ -63,6 +63,18 @@ small{color:#aaa}
 </div>
 
 <div class="card">
+<h3>🗑 Delete Player</h3>
+<form method="post" action="/delete_player">
+<select name="name" required>
+{% for p in players_list %}
+<option>{{p[0]}}</option>
+{% endfor %}
+</select>
+<button style="background:#ff3b3b;color:white">Delete Player</button>
+</form>
+</div>
+
+<div class="card">
 <a href="/logout"><button>Logout</button></a>
 </div>
 
