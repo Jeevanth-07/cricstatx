@@ -7,6 +7,8 @@ app.secret_key = "cricstatx"
 def db():
     return sqlite3.connect("database.db")
 
+# ================= PDF PARSER =================
+
 def parse_pdf(file):
     batsmen = {}
     bowlers = {}
@@ -37,6 +39,8 @@ def parse_pdf(file):
 
     return batsmen, bowlers
 
+# ================= UPSERT =================
+
 def upsert(cur, name, bat_runs=0, bat_balls=0, wickets=0,
            bowl_runs=0, bowl_balls=0, fours=0, sixes=0, out=0):
 
@@ -64,7 +68,9 @@ def upsert(cur, name, bat_runs=0, bat_balls=0, wickets=0,
             VALUES(?,0,?,?,?,?,?,?,?,?,?,?)
         """,(name,bat_runs,bat_balls,wickets,0,out,bowl_runs,bowl_balls,fours,sixes,bat_runs))
 
-@app.route("/", methods=["GET","POST"])
+# ================= INDEX =================
+
+@app.route("/", methods=["GET"])
 def index():
     con = db()
     cur = con.cursor()
@@ -84,12 +90,16 @@ def index():
 
     return render_template("index.html", batting=batting, bowling=bowling)
 
+# ================= LOGIN =================
+
 @app.route("/login", methods=["GET","POST"])
 def login():
     if request.method=="POST" and request.form["u"]=="admin" and request.form["p"]=="admin123":
         session["admin"] = True
         return redirect("/admin")
     return render_template("login.html")
+
+# ================= ADMIN =================
 
 @app.route("/admin", methods=["GET","POST"])
 def admin():
@@ -99,14 +109,13 @@ def admin():
     con = db()
     cur = con.cursor()
 
-    # Multiple PDF Upload
+    # ========= UPLOAD =========
     if request.method=="POST" and request.form.get("action")=="upload":
 
         files = request.files.getlist("files")
 
         for file in files:
             if file and file.filename != "":
-
                 bats, bowl = parse_pdf(file)
 
                 for n,(r,b,f4,f6) in bats.items():
@@ -118,12 +127,51 @@ def admin():
 
         con.commit()
 
-    # Reset Database
+    # ========= RESET =========
     if request.method=="POST" and request.form.get("action")=="reset":
         cur.execute("DELETE FROM players")
         con.commit()
 
-    # Merge Players
+    # ========= EDIT PLAYER =========
+    if request.method=="POST" and request.form.get("action")=="edit":
+
+        old = request.form["old"]
+        new = request.form["name"].strip()
+
+        def safe_int(val):
+            try:
+                return int(val)
+            except:
+                return 0
+
+        cur.execute("""
+            UPDATE players SET
+            name=?,
+            runs=?,
+            balls=?,
+            wickets=?,
+            bowl_runs=?,
+            bowl_balls=?,
+            fours=?,
+            sixes=?,
+            hs=?
+            WHERE name=?
+        """,(
+            new,
+            safe_int(request.form.get("runs")),
+            safe_int(request.form.get("balls")),
+            safe_int(request.form.get("wickets")),
+            safe_int(request.form.get("bowl_runs")),
+            safe_int(request.form.get("bowl_balls")),
+            safe_int(request.form.get("fours")),
+            safe_int(request.form.get("sixes")),
+            safe_int(request.form.get("hs")),
+            old
+        ))
+
+        con.commit()
+
+    # ========= MERGE =========
     if request.method=="POST" and request.form.get("action")=="merge":
 
         source = request.form["source"]
@@ -138,7 +186,6 @@ def admin():
             t = cur.fetchone()
 
             if s and t:
-
                 new_hs = max(s[11], t[11])
 
                 cur.execute("""
@@ -164,6 +211,7 @@ def admin():
                 cur.execute("DELETE FROM players WHERE name=?", (source,))
                 con.commit()
 
+    # ========= LOAD DATA =========
     cur.execute("SELECT * FROM players")
     players_list = cur.fetchall()
 
@@ -181,6 +229,8 @@ def admin():
         matches=matches
     )
 
+# ================= DELETE =================
+
 @app.route("/delete_player", methods=["POST"])
 def delete_player():
     if not session.get("admin"):
@@ -193,6 +243,8 @@ def delete_player():
     con.close()
     return redirect("/admin")
 
+# ================= LOGOUT =================
+
 @app.route("/logout")
 def logout():
     session.clear()
@@ -200,4 +252,3 @@ def logout():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
-
