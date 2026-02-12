@@ -19,7 +19,12 @@ def parse_pdf(file):
     for line in lines:
         m = re.match(r'^([A-Za-z]+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+([\d.]+)', line)
         if m:
-            batsmen[m.group(1)] = (int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5)))
+            batsmen[m.group(1)] = (
+                int(m.group(2)),
+                int(m.group(3)),
+                int(m.group(4)),
+                int(m.group(5))
+            )
             continue
 
         m = re.match(r'^([A-Za-z]+)\s+([\d.]+)\s+\d+\s+(\d+)\s+(\d+)\s+([\d.]+)', line)
@@ -34,6 +39,7 @@ def parse_pdf(file):
 
 def upsert(cur, name, bat_runs=0, bat_balls=0, wickets=0,
            bowl_runs=0, bowl_balls=0, fours=0, sixes=0, out=0):
+
     cur.execute("SELECT hs FROM players WHERE name=?", (name,))
     r = cur.fetchone()
 
@@ -62,13 +68,8 @@ def upsert(cur, name, bat_runs=0, bat_balls=0, wickets=0,
 def index():
     con = db()
     cur = con.cursor()
-    q = request.form.get("q")
 
-    if q:
-        cur.execute("SELECT * FROM players WHERE name LIKE ?",('%'+q+'%',))
-    else:
-        cur.execute("SELECT * FROM players")
-
+    cur.execute("SELECT * FROM players")
     data = cur.fetchall()
     con.close()
 
@@ -82,7 +83,6 @@ def index():
     bowling = sorted(data, key=lambda x: safe_int(x[4]), reverse=True)
 
     return render_template("index.html", batting=batting, bowling=bowling)
-
 
 @app.route("/login", methods=["GET","POST"])
 def login():
@@ -99,64 +99,82 @@ def admin():
     con = db()
     cur = con.cursor()
 
-    # PDF Upload
+    # Multiple PDF Upload
     if request.method=="POST" and request.form.get("action")=="upload":
-        bats,bowl=parse_pdf(request.files["file"])
 
-        for n,(r,b,f4,f6) in bats.items():
-            upsert(cur,n,bat_runs=r,bat_balls=b,fours=f4,sixes=f6,out=1)
-            cur.execute("UPDATE players SET matches=matches+1 WHERE name=?",(n,))
-        for n,(w,br,bb) in bowl.items():
-            upsert(cur,n,wickets=w,bowl_runs=br,bowl_balls=bb)
+        files = request.files.getlist("files")
+
+        for file in files:
+            if file and file.filename != "":
+
+                bats, bowl = parse_pdf(file)
+
+                for n,(r,b,f4,f6) in bats.items():
+                    upsert(cur,n,bat_runs=r,bat_balls=b,fours=f4,sixes=f6,out=1)
+                    cur.execute("UPDATE players SET matches=matches+1 WHERE name=?",(n,))
+
+                for n,(w,br,bb) in bowl.items():
+                    upsert(cur,n,wickets=w,bowl_runs=br,bowl_balls=bb)
+
         con.commit()
 
-    # Reset DB
+    # Reset Database
     if request.method=="POST" and request.form.get("action")=="reset":
         cur.execute("DELETE FROM players")
         con.commit()
 
-    # Manual Edit (SAFE)
-    if request.method=="POST" and request.form.get("action")=="edit":
-        old = request.form["old"]
-        new = request.form["name"].strip()
+    # Merge Players
+    if request.method=="POST" and request.form.get("action")=="merge":
 
-        # If name is changed, check uniqueness
-        if new != old:
-            cur.execute("SELECT 1 FROM players WHERE name=?", (new,))
-            if cur.fetchone():
-                con.close()
-                return "❌ Player name already exists. Choose a different name."
+        source = request.form["source"]
+        target = request.form["target"]
 
-        cur.execute("""
-            UPDATE players SET
-            name=?, runs=?, balls=?, wickets=?, bowl_runs=?, bowl_balls=?, 
-            fours=?, sixes=?, hs=?
-            WHERE name=?
-        """,(
-            new,
-            request.form["runs"],
-            request.form["balls"],
-            request.form["wickets"],
-            request.form["bowl_runs"],
-            request.form["bowl_balls"],
-            request.form["fours"],
-            request.form["sixes"],
-            request.form["hs"],
-            old
-        ))
-        con.commit()
+        if source != target:
 
-    # Dashboard info
+            cur.execute("SELECT * FROM players WHERE name=?", (source,))
+            s = cur.fetchone()
+
+            cur.execute("SELECT * FROM players WHERE name=?", (target,))
+            t = cur.fetchone()
+
+            if s and t:
+
+                new_hs = max(s[11], t[11])
+
+                cur.execute("""
+                    UPDATE players SET
+                    matches = matches + ?,
+                    runs = runs + ?,
+                    balls = balls + ?,
+                    wickets = wickets + ?,
+                    outs = outs + ?,
+                    bowl_runs = bowl_runs + ?,
+                    bowl_balls = bowl_balls + ?,
+                    fours = fours + ?,
+                    sixes = sixes + ?,
+                    hs = ?
+                    WHERE name = ?
+                """,(
+                    s[1], s[2], s[3], s[4], s[6],
+                    s[7], s[8], s[9], s[10],
+                    new_hs,
+                    target
+                ))
+
+                cur.execute("DELETE FROM players WHERE name=?", (source,))
+                con.commit()
+
     cur.execute("SELECT * FROM players")
-    players_list=cur.fetchall()
+    players_list = cur.fetchall()
 
     cur.execute("SELECT COUNT(*) FROM players")
-    players_count=cur.fetchone()[0]
+    players_count = cur.fetchone()[0]
 
     cur.execute("SELECT SUM(matches) FROM players")
-    matches=cur.fetchone()[0] or 0
+    matches = cur.fetchone()[0] or 0
 
     con.close()
+
     return render_template("admin.html",
         players_list=players_list,
         count=players_count,
@@ -168,19 +186,18 @@ def delete_player():
     if not session.get("admin"):
         return redirect("/login")
 
-    con=db()
-    cur=con.cursor()
+    con = db()
+    cur = con.cursor()
     cur.execute("DELETE FROM players WHERE name=?", (request.form["name"],))
     con.commit()
     con.close()
     return redirect("/admin")
 
 @app.route("/logout")
-
 def logout():
     session.clear()
     return redirect("/")
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=5000)
 

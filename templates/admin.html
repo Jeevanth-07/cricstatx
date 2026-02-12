@@ -2,13 +2,40 @@
 <html>
 <head>
 <title>Admin Panel - CricStatX</title>
+
 <style>
-body{background:radial-gradient(circle at top,#000428,#004e92);font-family:Segoe UI;color:white;text-align:center}
+body{
+    background:radial-gradient(circle at top,#000428,#004e92);
+    font-family:Segoe UI;
+    color:white;
+    text-align:center
+}
 h1{color:#00ffd5}
-.card{background:#001f3f;width:400px;margin:auto;padding:20px;border-radius:10px;margin-top:30px;box-shadow:0 0 15px #00ffd5}
-input,select,button{padding:10px;width:90%;margin-top:10px}
-button{background:#00ffd5;border:none;font-weight:bold;cursor:pointer}
+.card{
+    background:#001f3f;
+    width:400px;
+    margin:auto;
+    padding:20px;
+    border-radius:10px;
+    margin-top:30px;
+    box-shadow:0 0 15px #00ffd5
+}
+input,select,button{
+    padding:10px;
+    width:90%;
+    margin-top:10px
+}
+button{
+    background:#00ffd5;
+    border:none;
+    font-weight:bold;
+    cursor:pointer
+}
 small{color:#aaa}
+label{
+    display:block;
+    margin-top:10px;
+}
 </style>
 </head>
 
@@ -17,11 +44,12 @@ small{color:#aaa}
 <h1>⚙ CricStatX Admin Panel</h1>
 
 <div class="card">
-<h3>📤 Upload Match PDF</h3>
+<h3>📤 Upload Match PDFs</h3>
 <form method="post" enctype="multipart/form-data">
-<input type="file" name="file" required>
-<button name="action" value="upload">Upload Match</button>
+<input type="file" name="files" multiple required>
+<button name="action" value="upload">Upload Matches</button>
 </form>
+<small>You can select multiple PDF files</small>
 </div>
 
 <div class="card">
@@ -71,6 +99,30 @@ small{color:#aaa}
 {% endfor %}
 </select>
 <button style="background:#ff3b3b;color:white">Delete Player</button>
+</form>
+</div>
+
+<div class="card">
+<h3>🔀 Merge Players</h3>
+
+<form method="post">
+<input type="hidden" name="action" value="merge">
+
+<label>Merge FROM (Duplicate)</label>
+<select name="source" required>
+{% for p in players_list %}
+<option value="{{p[0]}}">{{p[0]}}</option>
+{% endfor %}
+</select>
+
+<label>Merge INTO (Main Player)</label>
+<select name="target" required>
+{% for p in players_list %}
+<option value="{{p[0]}}">{{p[0]}}</option>
+{% endfor %}
+</select>
+
+<button>Merge Stats</button>
 </form>
 </div>
 

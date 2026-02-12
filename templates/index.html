@@ -2,44 +2,274 @@
 <html>
 <head>
 <title>CricStatX</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
+
 body{
     margin:0;
-    background:radial-gradient(circle at top,#001f3f,#000814);
-    font-family:Segoe UI;
+    font-family:'Segoe UI', sans-serif;
     color:white;
+    background: linear-gradient(135deg,#000814,#001f3f,#003566);
 }
-h1{text-align:center;color:#00ffd5;margin-top:20px}
-section{margin:30px}
+
+/* ===== Sidebar ===== */
+
+.sidebar{
+    width:200px;   /* reduced from 240px */
+    height:100vh;
+    position:fixed;
+    left:0;
+    top:0;
+    padding:50px 15px;
+    background:linear-gradient(180deg,#000814,#001f3f);
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    border-right:2px solid rgba(0,255,213,0.35);
+    box-shadow:4px 0 20px rgba(0,255,213,0.08);
+}
+
+/* Title */
+
+.sidebar h2{
+    text-align:center;
+    color:#00ffd5;
+    margin-bottom:30px;
+    font-weight:600;
+    letter-spacing:1px;
+}
+
+/* ===== Premium Button Style ===== */
+
+.sidebar a{
+    padding:14px 20px;
+    border-radius:40px;
+    text-decoration:none;
+    color:white;
+    font-weight:500;
+    letter-spacing:0.5px;
+    text-align:center;
+    transition:all 0.3s ease;
+    background:linear-gradient(135deg,#003566,#00b4d8);
+    box-shadow:0 4px 15px rgba(0,0,0,0.3);
+    cursor:pointer;
+}
+
+/* Hover Effect */
+
+.sidebar a:hover{
+    transform:translateX(8px);
+    box-shadow:0 6px 20px rgba(0,255,213,0.4);
+    background:linear-gradient(135deg,#00b4d8,#00ffd5);
+}
+
+/* Active Button */
+
+.sidebar a.active{
+    background:linear-gradient(135deg,#00ffd5,#00b4d8);
+    color:#001f3f;
+    font-weight:600;
+}
+
+.background-player{
+    position:fixed;
+    bottom:0;
+    left:0;
+    width:230px;
+    opacity:0.15;              /* subtle look */
+    pointer-events:none;       /* not clickable */
+    z-index:0;
+    mask-image: linear-gradient(to top, black 70%, transparent 100%);
+}
+
+
+.main{
+    margin-left:220px;  /* 200px + small spacing */
+    padding:48px 40px;
+    max-width:1200px;
+    position:relative;
+    z-index:1;
+}
+
+
+.main::before{
+    content:"";
+    position:absolute;
+    top:-200px;
+    right:-200px;
+    width:400px;
+    height:400px;
+    background:radial-gradient(circle, rgba(0,255,213,0.15), transparent 60%);
+    z-index:-1;
+}
+
+.main-title{
+    text-align:center;
+    font-size:38px;
+    color:#00ffd5;
+    margin-bottom:35px;
+    letter-spacing:1.5px;
+    font-weight:600;
+}
+
+h2{
+    color:#00ffd5;
+    margin-bottom:24px;
+    font-weight:500;
+    letter-spacing:0.5px;
+}
+
+
+/* ===== Search Bar ===== */
+
+.search-box{
+    margin-bottom:32px;
+}
+
+.search-box input{
+    width:320px;
+    padding:14px 16px;
+    border-radius:8px;
+    border:none;
+    outline:none;
+    background:#002b5c;
+    color:white;
+    font-size:14px;
+}
+
+
+.search-box input:focus{
+    box-shadow:0 0 8px rgba(0,255,213,0.4);
+}
+
+/* ===== Table ===== */
+
 table{
-    width:95%;
-    margin:auto;
+    width:100%;
     border-collapse:collapse;
-    margin-top:15px;
+    background:#001f3f;
+    font-size:15px;
+    border-radius:10px;
+    overflow:hidden;
+    margin-top:8px;
 }
+
 th,td{
     border:1px solid #00ffd5;
-    padding:10px;
+    padding:16px 14px;
     text-align:center;
 }
-th{background:#00ffd5;color:#001f3f}
+
+th{
+    background:#00ffd5;
+    color:#001f3f;
+    font-weight:600;
+    font-size:14px;
+    letter-spacing:0.5px;
+}
+
+td{
+    font-weight:400;
+}
+
+tr{
+    transition:background 0.25s ease, transform 0.15s ease;
+}
+
+tr:hover{
+    background:rgba(0,255,213,0.08);
+    transform:scale(1.005);
+}
+
+
+/* ===== Sections ===== */
+
+section{
+    display:none;
+}
+
+section.active{
+    display:block;
+}
+
+
+@keyframes fade{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
+}
+
+/* ===== Modal ===== */
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+}
+
+
+.modal-content{
+    background:#001f3f;
+    padding:30px;
+    border-radius:10px;
+    width:400px;
+    text-align:center;
+    box-shadow:0 0 20px rgba(0,255,213,0.3);
+}
+
+.modal h3{
+    color:#00ffd5;
+}
+
+.close{
+    margin-top:15px;
+    padding:8px 15px;
+    background:#00ffd5;
+    border:none;
+    cursor:pointer;
+}
+
 </style>
 </head>
 
 <body>
 
-<h1>🏏 CricStatX</h1>
+<div class="sidebar">
+    <h2>🏏 CricStatX</h2>
+    <a id="batBtn" class="active" onclick="showSection('batting','batBtn')">🏏 Batting</a>
+    <a id="bowlBtn" onclick="showSection('bowling','bowlBtn')">🎯 Bowling</a>
+</div>
 
-<section>
+<div class="main" id="mainContent">
+
+<h1 class="main-title">🏏 CricStatX</h1>
+
+<div class="search-box">
+<input type="text" id="searchInput" placeholder="Search Player..." onkeyup="searchPlayer()">
+</div>
+
+<!-- ===== Batting ===== -->
+
+<section id="batting" class="active">
 <h2>🏏 Batting Stats</h2>
-<table>
+
+<table id="batTable">
 <tr>
-<th>Player</th><th>Matches</th><th>Runs</th><th>Balls</th>
-<th>4s</th><th>6s</th><th>HS</th><th>Average</th><th>Strike Rate</th>
+<th>Rank</th><th>Player</th><th>Matches</th><th>Runs</th>
+<th>Balls</th><th>4s</th><th>6s</th><th>HS</th>
+<th>Average</th><th>Strike Rate</th>
 </tr>
+
 {% for p in batting %}
 {% if p[3]|int > 0 %}
-<tr>
+<tr onclick="openModal('{{p[0]}}', {{p[2]}}, {{p[4]}}, {{p[11]}})">
+<td>{{ loop.index }}</td>
 <td>{{p[0]}}</td>
 <td>{{p[1]}}</td>
 <td>{{p[2]}}</td>
@@ -55,15 +285,21 @@ th{background:#00ffd5;color:#001f3f}
 </table>
 </section>
 
-<section>
+<!-- ===== Bowling ===== -->
+
+<section id="bowling">
 <h2>🎯 Bowling Stats</h2>
-<table>
+
+<table id="bowlTable">
 <tr>
-<th>Player</th><th>Overs</th><th>Runs</th><th>Wickets</th><th>Average</th><th>Economy</th>
+<th>Rank</th><th>Player</th><th>Overs</th>
+<th>Runs</th><th>Wickets</th><th>Average</th><th>Economy</th>
 </tr>
+
 {% for p in bowling %}
 {% if p[8]|int > 0 %}
-<tr>
+<tr onclick="openModal('{{p[0]}}', {{p[2]}}, {{p[4]}}, {{p[11]}})">
+<td>{{ loop.index }}</td>
 <td>{{p[0]}}</td>
 <td>{{'%.1f'%(p[8]/6)}}</td>
 <td>{{p[7]}}</td>
@@ -75,6 +311,128 @@ th{background:#00ffd5;color:#001f3f}
 {% endfor %}
 </table>
 </section>
+
+</div>
+
+<!-- ===== Modal ===== -->
+
+<div class="modal" id="playerModal">
+<div class="modal-content">
+<h3 id="modalName"></h3>
+
+<p>Total Runs: <span id="modalRuns">0</span></p>
+<p>Total Wickets: <span id="modalWickets">0</span></p>
+<p>Highest Score: <span id="modalHS">0</span></p>
+
+<canvas id="playerChart" height="150"></canvas>
+
+<button class="close" onclick="closeModal()">Close</button>
+</div>
+</div>
+
+
+<script>
+
+let chartInstance = null;
+
+function showSection(sectionId, btnId){
+
+    const sections = document.querySelectorAll("section");
+    sections.forEach(sec => sec.classList.remove("active"));
+
+    const buttons = document.querySelectorAll(".sidebar a");
+    buttons.forEach(btn => btn.classList.remove("active"));
+
+    document.getElementById(sectionId).classList.add("active");
+    document.getElementById(btnId).classList.add("active");
+
+    window.scrollTo(0,0);  // scroll to top when switching
+}
+
+
+function searchPlayer(){
+    let input = document.getElementById("searchInput").value.toLowerCase();
+    let rows = document.querySelectorAll("table tr");
+
+    rows.forEach((row, index) => {
+        if(index === 0) return;
+        let name = row.cells[1].innerText.toLowerCase();
+        row.style.display = name.includes(input) ? "" : "none";
+    });
+}
+
+/* ===== Animated Counter ===== */
+
+function animateValue(id, start, end, duration) {
+    let range = end - start;
+    let current = start;
+    let increment = end > start ? 1 : -1;
+    let stepTime = Math.abs(Math.floor(duration / range));
+    let obj = document.getElementById(id);
+
+    let timer = setInterval(function() {
+        current += increment;
+        obj.textContent = current;
+        if (current == end) {
+            clearInterval(timer);
+        }
+    }, stepTime);
+}
+
+/* ===== Open Modal ===== */
+
+function openModal(name, runs, wickets, hs){
+
+    document.getElementById("modalName").innerText = name;
+
+    animateValue("modalRuns", 0, runs, 800);
+    animateValue("modalWickets", 0, wickets, 800);
+    animateValue("modalHS", 0, hs, 800);
+
+    document.getElementById("playerModal").style.display = "flex";
+
+    if(chartInstance){
+        chartInstance.destroy();
+    }
+
+    const ctx = document.getElementById('playerChart').getContext('2d');
+
+    chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Runs', 'Wickets', 'Highest Score'],
+            datasets: [{
+                data: [runs, wickets, hs],
+                backgroundColor: [
+                    '#00ffd5',
+                    '#00b4d8',
+                    '#90e0ef'
+                ],
+                borderRadius: 5
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    ticks: { color: 'white' }
+                },
+                y: {
+                    ticks: { color: 'white' }
+                }
+            }
+        }
+    });
+}
+
+function closeModal(){
+    document.getElementById("playerModal").style.display = "none";
+}
+
+</script>
+<img src="{{ url_for('static', filename='batsman.png') }}"  class="background-player">
 
 </body>
 </html>
